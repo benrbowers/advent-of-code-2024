@@ -51,5 +51,17 @@ func main() {
 		distanceScore += int(math.Abs(float64(list1[i] - list2[i])))
 	}
 
+	var similarityScore int = 0
+	var rightCounts map[int]int = map[int]int{}
+
+	for _, num := range list2 {
+		rightCounts[num]++
+	}
+
+	for _, num := range list1 {
+		similarityScore += num * rightCounts[num]
+	}
+
 	fmt.Println("Distance Score:", distanceScore)
+	fmt.Println("Similarity Score:", similarityScore)
 }
