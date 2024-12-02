@@ -37,29 +37,37 @@ func main() {
 		}
 
 		var increasing bool = false
+		var faultCount int = 0
 
 		for i, num := range levels {
 			if i == 0 && num < levels[1] {
 				increasing = true
 			}
+			if faultCount > 1 {
+				break
+			}
 
 			if i < len(levels)-1 {
 				if increasing {
 					if num > levels[i+1] {
-						break
+						faultCount++
+						continue
 					}
 				} else {
 					if num < levels[i+1] {
-						break
+						faultCount++
+						continue
 					}
 				}
 
 				if num == levels[i+1] {
-					break
+					faultCount++
+					continue
 				}
 
 				if math.Abs(float64(levels[i+1]-num)) > 3 {
-					break
+					faultCount++
+					continue
 				}
 			} else {
 				safeCount++
