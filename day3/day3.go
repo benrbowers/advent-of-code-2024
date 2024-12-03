@@ -34,10 +34,11 @@ func main() {
 	defer inputFile.Close()
 
 	mulPattern := regexp.MustCompile(
-		"mul\\((0|[1-9][0-9]{0,2}),(0|[1-9][0-9]{0,2})\\)",
+		"(mul\\((0|[1-9][0-9]{0,2}),(0|[1-9][0-9]{0,2})\\))|(do\\(\\))|(don't\\(\\))",
 	)
 
 	var answer int = 0
+	var mulEnabled bool = true
 
 	scanner := bufio.NewScanner(inputFile)
 
@@ -47,22 +48,28 @@ func main() {
 		matches := mulPattern.FindAllString(line, -1)
 
 		for _, match := range matches {
-			match = match[4 : len(match)-1]
-			nums := strings.Split(match, ",")
+			if match == "do()" {
+				mulEnabled = true
+			} else if match == "don't()" {
+				mulEnabled = false
+			} else if mulEnabled {
+				match = match[4 : len(match)-1]
+				nums := strings.Split(match, ",")
 
-			x, err := strconv.Atoi(nums[0])
-			if err != nil {
-				fmt.Println("X is not a number:")
-				panic(err)
+				x, err := strconv.Atoi(nums[0])
+				if err != nil {
+					fmt.Println("X is not a number:")
+					panic(err)
+				}
+
+				y, err := strconv.Atoi(nums[1])
+				if err != nil {
+					fmt.Println("Y is not a number:")
+					panic(err)
+				}
+
+				answer += mul(x, y)
 			}
-
-			y, err := strconv.Atoi(nums[1])
-			if err != nil {
-				fmt.Println("Y is not a number:")
-				panic(err)
-			}
-
-			answer += mul(x, y)
 		}
 	}
 
