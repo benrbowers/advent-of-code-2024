@@ -158,7 +158,7 @@ func main() {
 			var row int
 			var col int
 
-			if i < lineCount {
+			if i < lineLength {
 				row = position
 				col = lineLength - 1 - i + position
 			} else {
@@ -174,7 +174,7 @@ func main() {
 			var row int
 			var col int
 
-			if i < lineCount {
+			if i < lineLength {
 				row = position
 				col = lineLength - 1 - i + position
 			} else {
