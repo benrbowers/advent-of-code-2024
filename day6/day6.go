@@ -87,6 +87,18 @@ func getNextChar(pos [2]int, input []string, dir Direction) string {
 	return ""
 }
 
+func testLoop(curPos, nextPos, firstPos, secondPos string) bool {
+	if firstPos == "" || secondPos == "" {
+		return false
+	}
+
+	if curPos != firstPos || nextPos != secondPos {
+		return false
+	}
+
+	return true
+}
+
 func main() {
 	inputFile, err := os.Open("input.txt")
 	if err != nil {
@@ -96,9 +108,13 @@ func main() {
 	defer inputFile.Close()
 
 	var guardPos [2]int // row, col
+	var originalPos [2]int
+	var firstPos string
+	var secondPos string
 	var lines []string = []string{}
 	var distinctPositions []string = []string{} // strings in format "row,col"
 	var currentDirection Direction = DIR_UP
+	var infiniteLoopCount int = 0
 
 	scanner := bufio.NewScanner(inputFile)
 
@@ -113,23 +129,57 @@ func main() {
 		lines = append(lines, line)
 	}
 
+	originalPos = guardPos
+
 	lineCount := len(lines)
 	lineLength := len(lines[0])
 
-	for inBounds(guardPos, lineCount, lineLength) {
-		curPos := fmt.Sprintf("%d,%d", guardPos[0], guardPos[1])
-		if !slices.Contains(distinctPositions, curPos) {
-			distinctPositions = append(distinctPositions, curPos)
-		}
+	for obstacleRow, line := range lines {
+		fmt.Printf("%.2f%%\n", float64(obstacleRow)/float64(lineCount)*100.0)
+		for obstacleCol, char := range strings.Split(line, "") {
+			fmt.Println(obstacleCol)
+			if char == "#" {
+				continue
+			}
+			if firstPos != "" {
+				guardPos = originalPos
+				secondPos = ""
+				currentDirection = DIR_UP
+			}
+			for inBounds(guardPos, lineCount, lineLength) {
+				curPos := fmt.Sprintf("%d,%d", guardPos[0], guardPos[1])
 
-		nextChar := getNextChar(guardPos, lines, currentDirection)
+				if firstPos == "" {
+					firstPos = curPos
+				} else if secondPos == "" {
+					secondPos = curPos
+				}
 
-		if nextChar == "#" {
-			currentDirection = rotateRight(currentDirection)
-		} else {
-			guardPos = moveForward(guardPos, currentDirection)
+				if lines[obstacleRow][obstacleCol] == '^' { // So still only count default run
+					if !slices.Contains(distinctPositions, curPos) {
+						distinctPositions = append(distinctPositions, curPos)
+					}
+				}
+
+				nextChar := getNextChar(guardPos, lines, currentDirection)
+				next := moveForward(guardPos, currentDirection)
+				isTestObstacle := next[0] == obstacleRow && next[1] == obstacleCol
+
+				if nextChar == "#" || isTestObstacle {
+					currentDirection = rotateRight(currentDirection)
+				} else {
+					guardPos = moveForward(guardPos, currentDirection)
+					nextPos := fmt.Sprintf("%d,%d", guardPos[0], guardPos[1])
+
+					if testLoop(curPos, nextPos, firstPos, secondPos) {
+						infiniteLoopCount++
+						break
+					}
+				}
+			}
 		}
 	}
 
 	fmt.Printf("Answer: %d\n", len(distinctPositions))
+	fmt.Printf("Configurations with loops: %d\n", infiniteLoopCount)
 }
