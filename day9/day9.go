@@ -32,6 +32,8 @@ func main() {
 	input := scanner.Text()
 
 	var memBlocks []int = []int{}
+	var fileSizes []int = []int{}
+	var freeSizes []int = []int{}
 
 	for i, char := range strings.Split(input, "") {
 		size, err := strconv.Atoi(char)
@@ -44,32 +46,79 @@ func main() {
 			for range size {
 				memBlocks = append(memBlocks, i/2)
 			}
+			fileSizes = append(fileSizes, size)
 		} else {
 			// Free block
 			for range size {
 				memBlocks = append(memBlocks, -1)
 			}
+			freeSizes = append(freeSizes, size)
 		}
 	}
 
-	for slices.Contains(memBlocks, -1) {
-		last := memBlocks[len(memBlocks)-1]
-		if last != -1 {
-			for i, block := range memBlocks {
-				if block == -1 {
-					memBlocks[i] = last
-					break
+	// for slices.Contains(memBlocks, -1) {
+	// 	last := memBlocks[len(memBlocks)-1]
+	// 	if last != -1 {
+	// 		for i, block := range memBlocks {
+	// 			if block == -1 {
+	// 				memBlocks[i] = last
+	// 				break
+	// 			}
+	// 		}
+	// 	}
+
+	// 	memBlocks = memBlocks[:len(memBlocks)-1]
+	// }
+
+	// var checksum1 int = 0
+	// for i, block := range memBlocks {
+	// 	checksum1 += block * i
+	// }
+
+	// fmt.Printf("Checksum part 1: %d\n", checksum1)
+
+	for id := len(fileSizes) - 1; id >= 0; id-- {
+		fileSize := fileSizes[id]
+		if fileSize == 0 {
+			continue
+		}
+
+		for slot, freeSize := range freeSizes {
+			if fileSize <= freeSize {
+				freeSizes[slot] -= fileSize
+
+				fileIndex := slices.Index(memBlocks, id)
+				for i := range fileSize {
+					memBlocks[fileIndex+i] = -1
 				}
+
+				freeIndex := lastIndex(memBlocks, slot) + 1
+				for i := range fileSize {
+					memBlocks[freeIndex+i] = id
+				}
+
+				break
 			}
 		}
-
-		memBlocks = memBlocks[:len(memBlocks)-1]
 	}
 
-	var checksum int = 0
+	fmt.Println(memBlocks[0:50])
+
+	var checksum2 int = 0
 	for i, block := range memBlocks {
-		checksum += block * i
+		if block != -1 {
+			checksum2 += block * i
+		}
 	}
 
-	fmt.Printf("Checksum: %d\n", checksum)
+	fmt.Printf("Checksum part 2: %d\n", checksum2)
+}
+
+func lastIndex(slice []int, value int) int {
+	for i := len(slice) - 1; i >= 0; i-- {
+		if slice[i] == value {
+			return i
+		}
+	}
+	return -1 // Value not found
 }
