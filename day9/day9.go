@@ -77,13 +77,16 @@ func main() {
 
 	// fmt.Printf("Checksum part 1: %d\n", checksum1)
 
-	for id := len(fileSizes) - 1; id >= 0; id-- {
+	fmt.Printf("len(fileSizes): %d\n", len(fileSizes))
+
+	for id := len(fileSizes) - 1; id >= 1; id-- {
 		fileSize := fileSizes[id]
 		if fileSize == 0 {
 			continue
 		}
 
-		for slot, freeSize := range freeSizes {
+		for slot := 0; slot < id-1; slot++ {
+			freeSize := freeSizes[slot]
 			if fileSize <= freeSize {
 				freeSizes[slot] -= fileSize
 
@@ -92,7 +95,7 @@ func main() {
 					memBlocks[fileIndex+i] = -1
 				}
 
-				freeIndex := lastIndex(memBlocks, slot) + 1
+				freeIndex := slices.Index(memBlocks, slot+1) - freeSize
 				for i := range fileSize {
 					memBlocks[freeIndex+i] = id
 				}
@@ -102,8 +105,6 @@ func main() {
 		}
 	}
 
-	fmt.Println(memBlocks[0:50])
-
 	var checksum2 int = 0
 	for i, block := range memBlocks {
 		if block != -1 {
@@ -112,13 +113,4 @@ func main() {
 	}
 
 	fmt.Printf("Checksum part 2: %d\n", checksum2)
-}
-
-func lastIndex(slice []int, value int) int {
-	for i := len(slice) - 1; i >= 0; i-- {
-		if slice[i] == value {
-			return i
-		}
-	}
-	return -1 // Value not found
 }
