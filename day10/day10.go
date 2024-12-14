@@ -53,23 +53,28 @@ func main() {
 	}
 
 	var totalScore int = 0
+	var totalRating int = 0
 
 	for _, trailhead := range trailheads {
 		var uniquePeaks [][2]int = [][2]int{}
-		count9s(lines, trailhead, &uniquePeaks)
+		var rating int = 0
+		count9s(lines, trailhead, &uniquePeaks, &rating)
 		totalScore += len(uniquePeaks)
+		totalRating += rating
 	}
 
 	fmt.Printf("Total score: %d\n", totalScore)
+	fmt.Printf("Total rating: %d\n", totalRating)
 }
 
-func count9s(lines [][]int, pos [2]int, uniquePeaks *[][2]int) {
+func count9s(lines [][]int, pos [2]int, uniquePeaks *[][2]int, rating *int) {
 	currElevation := lines[pos[0]][pos[1]]
 
 	if currElevation == 9 {
 		if !slices.Contains(*uniquePeaks, pos) {
 			*uniquePeaks = append(*uniquePeaks, pos)
 		}
+		*rating += 1
 
 		return
 	}
@@ -78,7 +83,7 @@ func count9s(lines [][]int, pos [2]int, uniquePeaks *[][2]int) {
 		nextElevation := getNextElevation(lines, pos, direction)
 
 		if nextElevation == currElevation+1 {
-			count9s(lines, moveForward(pos, direction), uniquePeaks)
+			count9s(lines, moveForward(pos, direction), uniquePeaks, rating)
 		}
 	}
 }
