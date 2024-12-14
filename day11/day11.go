@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+// Will probably need a recursive solution for the 75 count
+// Something like fn(num) -> fn(num1/2) + fn(num2/2)
+// Base case is blinkCount = 75
+
 func main() {
 	inputFile, err := os.Open("input.txt")
 	if err != nil {
@@ -21,40 +25,56 @@ func main() {
 	line := scanner.Text()
 	nums := strings.Split(line, " ")
 
-	for range 25 {
-		var newNums []string = []string{}
-		for _, num := range nums {
-			if num == "0" {
-				newNums = append(newNums, "1")
-			} else if len(num)%2 == 0 {
-				half := len(num) / 2
-				num1 := num[:half]
-				num2 := num[half:]
+	var totalStones int = 0
 
-				if num2[0] == '0' {
-					num2int, err := strconv.Atoi(num2)
-					if err != nil {
-						fmt.Println("Failed to convert num2 to int:")
-						panic(err)
-					}
-
-					num2 = strconv.Itoa(num2int)
-				}
-
-				// fmt.Printf("num: %s\n", num)
-				// fmt.Printf("num1: %s, num2: %s\n", num1, num2)
-				newNums = append(newNums, num1, num2)
-			} else {
-				numInt, err := strconv.Atoi(num)
-				if err != nil {
-					fmt.Println("Failed to convert num to int:")
-					panic(err)
-				}
-				newNums = append(newNums, strconv.Itoa(numInt*2024))
-			}
-		}
-		nums = newNums
+	for _, num := range nums {
+		var stoneCount int = 1
+		countStones(num, 75, &stoneCount)
+		totalStones += stoneCount
 	}
 
-	fmt.Printf("Number of stones: %d\n", len(nums))
+	fmt.Printf("Number of stones: %d\n", totalStones)
+}
+
+func countStones(num string, blinkCount int, stoneCount *int) {
+	if blinkCount <= 0 {
+		return
+	}
+
+	for len(num)%2 != 0 && blinkCount > 0 {
+		if num == "0" {
+			num = "1"
+		} else {
+			numInt, err := strconv.Atoi(num)
+			if err != nil {
+				fmt.Println("Failed to convert num to int:")
+				panic(err)
+			}
+			num = strconv.Itoa(numInt * 2024)
+		}
+
+		blinkCount -= 1
+	}
+
+	if blinkCount <= 0 {
+		return
+	}
+
+	half := len(num) / 2
+	num1 := num[:half]
+	num2 := num[half:]
+
+	if num2[0] == '0' {
+		num2int, err := strconv.Atoi(num2)
+		if err != nil {
+			fmt.Println("Failed to convert num2 to int:")
+			panic(err)
+		}
+
+		num2 = strconv.Itoa(num2int)
+	}
+
+	*stoneCount += 1
+	countStones(num1, blinkCount-1, stoneCount)
+	countStones(num2, blinkCount-1, stoneCount)
 }
