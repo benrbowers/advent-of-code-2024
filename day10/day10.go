@@ -57,35 +57,36 @@ func main() {
 
 	for _, trailhead := range trailheads {
 		var uniquePeaks [][2]int = [][2]int{}
-		var rating int = 0
-		count9s(lines, trailhead, &uniquePeaks, &rating)
+		totalRating += countPathsTo9s(lines, trailhead, &uniquePeaks)
 		totalScore += len(uniquePeaks)
-		totalRating += rating
 	}
 
 	fmt.Printf("Total score: %d\n", totalScore)
 	fmt.Printf("Total rating: %d\n", totalRating)
 }
 
-func count9s(lines [][]int, pos [2]int, uniquePeaks *[][2]int, rating *int) {
+func countPathsTo9s(lines [][]int, pos [2]int, uniquePeaks *[][2]int) int {
 	currElevation := lines[pos[0]][pos[1]]
 
 	if currElevation == 9 {
 		if !slices.Contains(*uniquePeaks, pos) {
 			*uniquePeaks = append(*uniquePeaks, pos)
 		}
-		*rating += 1
 
-		return
+		return 1
 	}
+
+	var pathsTo9s int = 0
 
 	for direction := range DIR_MAX {
 		nextElevation := getNextElevation(lines, pos, direction)
 
 		if nextElevation == currElevation+1 {
-			count9s(lines, moveForward(pos, direction), uniquePeaks, rating)
+			pathsTo9s += countPathsTo9s(lines, moveForward(pos, direction), uniquePeaks)
 		}
 	}
+
+	return pathsTo9s
 }
 
 func rotateRight(dir Direction) Direction {
