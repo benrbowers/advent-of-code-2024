@@ -12,6 +12,11 @@ import (
 // Something like fn(num) -> fn(num1/2) + fn(num2/2)
 // Base case is blinkCount = 75
 
+// Recursive still not fast enough
+// Try solving for roots and store in a map: root, blinkCount -> num stones
+// If root is already in map, return the value
+// If root is not in map, solve for it and store in map
+
 func main() {
 	inputFile, err := os.Open("input.txt")
 	if err != nil {
@@ -25,39 +30,44 @@ func main() {
 	line := scanner.Text()
 	nums := strings.Split(line, " ")
 
+	var rootMap map[string]int = map[string]int{} // [root,blinkCount] -> num stones
+
 	var totalStones int = 0
 
 	for _, num := range nums {
-		var stoneCount int = 1
-		countStones(num, 75, &stoneCount)
-		totalStones += stoneCount
+		totalStones += countStones(num, 75, rootMap)
 	}
 
 	fmt.Printf("Number of stones: %d\n", totalStones)
 }
 
-func countStones(num string, blinkCount int, stoneCount *int) {
+func countStones(num string, blinkCount int, rootMap map[string]int) int {
 	if blinkCount <= 0 {
-		return
+		return 1
 	}
 
-	for len(num)%2 != 0 && blinkCount > 0 {
+	rootKey := fmt.Sprintf("%s,%d", num, blinkCount)
+
+	if val, exists := rootMap[rootKey]; exists {
+		// fmt.Printf("Found %d stones for %s\n", val, rootKey)
+		return val
+	}
+
+	if len(num)%2 != 0 {
+		var stoneCount int
 		if num == "0" {
-			num = "1"
+			stoneCount = countStones("1", blinkCount-1, rootMap)
 		} else {
 			numInt, err := strconv.Atoi(num)
 			if err != nil {
 				fmt.Println("Failed to convert num to int:")
 				panic(err)
 			}
-			num = strconv.Itoa(numInt * 2024)
+			stoneCount = countStones(strconv.Itoa(numInt*2024), blinkCount-1, rootMap)
 		}
 
-		blinkCount -= 1
-	}
-
-	if blinkCount <= 0 {
-		return
+		rootMap[rootKey] = stoneCount
+		return stoneCount
 	}
 
 	half := len(num) / 2
@@ -74,7 +84,14 @@ func countStones(num string, blinkCount int, stoneCount *int) {
 		num2 = strconv.Itoa(num2int)
 	}
 
-	*stoneCount += 1
-	countStones(num1, blinkCount-1, stoneCount)
-	countStones(num2, blinkCount-1, stoneCount)
+	var leftCount int = 0
+	var rightCount int = 0
+
+	leftCount = countStones(num1, blinkCount-1, rootMap)
+	rightCount = countStones(num2, blinkCount-1, rootMap)
+
+	totalCount := leftCount + rightCount
+	rootMap[rootKey] = totalCount
+
+	return totalCount
 }
